@@ -38,10 +38,6 @@ LT_INIT
 # Extra dependencies, configuration
 ###################################
 
-AC_SUBST([PACKAGE_VERSION_MAJOR],[VERSION_MAJOR])
-AC_SUBST([PACKAGE_VERSION_MINOR],[VERSION_MINOR])
-AC_SUBST([PACKAGE_VERSION_PATCH],[VERSION_PATCH])
-
 AC_OPENMP
 
 # Output
@@ -57,6 +53,7 @@ cat <<EOF
 NRM BENCHMARKS
 
 Version: $PACKAGE_VERSION
+OpenMP Flags: $OPENMP_CFLAGS
 
 -------------------------------------------------------------------------------
 EOF
