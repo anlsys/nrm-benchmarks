@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	 */
 	size_t array_size;
 	long int times;
+	double scalar = 3.0;
 
 	/* needed for performance measurement */
 	int64_t sumtime = 0, mintime = UINT64_MAX, maxtime = 0;
@@ -63,8 +64,8 @@ int main(int argc, char **argv)
 #pragma omp parallel for
 	for(size_t i = 0; i < array_size; i++)
 	{
-		a[i] = 1.0;
-		b[i] = 2.0;
+		a[i] = 2.0;
+		b[i] = 0.0;
 	}
 
 	/* NRM Context init */
@@ -74,7 +75,7 @@ int main(int argc, char **argv)
 	/* one run of the benchmark for free, warms up the memory */
 #pragma omp parallel for
 	for(size_t i = 0; i < array_size; i++)
-		b[i] = a[i];
+		b[i] = scalar*a[i];
 
 	/* this version of the benchmarks reports one progress each time it goes
 	 * through the entire array.
@@ -90,7 +91,7 @@ int main(int argc, char **argv)
 		/* the actual benchmark */
 #pragma omp parallel for
 		for(size_t i = 0; i < array_size; i++)
-			b[i] = a[i];
+			b[i] = scalar*a[i];
 
 		nrmb_gettime(&end);
 		nrm_send_progress(context, 1);
@@ -109,7 +110,7 @@ int main(int argc, char **argv)
 	/* report the configuration and timings */
 	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);
 	fprintf(stdout, "Version:             %s\n", PACKAGE_VERSION);
-	fprintf(stdout, "Description: one progress per iteration, Copy benchmark\n");
+	fprintf(stdout, "Description: one progress per iteration, Scale benchmark\n");
 	fprintf(stdout, "Array size:          %zu (elements).\n", array_size);
 	fprintf(stdout, "Memory per array:    %.1f MiB.\n",
 		(double) memory_size /1024.0/1024.0);
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
 	 */
 	err = 0;
 	for(size_t i = 0; i < array_size; i++)
-		err = err || !nrmb_check_double(a[i], b[i], 2);
+		err = err || !nrmb_check_double(6.0, b[i], 2);
 
 	if(err)
 		fprintf(stdout, "VALIDATION FAILED!!!!\n");

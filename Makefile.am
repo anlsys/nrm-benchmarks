@@ -16,5 +16,6 @@ UTILS_SOURCES = src/utils.c
 ###############################################################################
 
 progress_ones_copy_SOURCES = $(UTILS_SOURCES) src/progress/ones/copy.c
+progress_ones_scale_SOURCES = $(UTILS_SOURCES) src/progress/ones/scale.c
 
-bin_PROGRAMS = progress-ones-copy
+bin_PROGRAMS = progress-ones-copy progress-ones-scale
