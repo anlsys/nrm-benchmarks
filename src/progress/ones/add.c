@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	long int times;
 
 	/* needed for performance measurement */
-	int64_t sumtime = 0, mintime = UINT64_MAX, maxtime = 0;
+	int64_t sumtime = 0, mintime = INT64_MAX, maxtime = 0;
 	nrmb_time_t start, end;
 	size_t memory_size;
 	int num_threads;

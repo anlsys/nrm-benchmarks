@@ -23,8 +23,8 @@
 #ifndef NRM_BENCHMARKS_H
 #define NRM_BENCHMARKS_H 1
 
-#define NRMB_MAX(a, b) (((a) < (b)) ? (a) : (b))
-#define NRMB_MIN(a, b) (((a) < (b)) ? (b) : (a))
+#define NRMB_MAX(a, b) (((a) < (b)) ? (b) : (a))
+#define NRMB_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define NRMB_ABS(a) (((a) < 0) ? -(a) : (a))
 
 typedef struct timespec nrmb_time_t;
