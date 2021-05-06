@@ -1,6 +1,6 @@
-{ stdenv, autoreconfHook, pkgconfig }:
+{ stdenv, autoreconfHook, pkgconfig, libnrm }:
 stdenv.mkDerivation {
   src = ../.;
   name = "nrm-benchmarks";
-  nativeBuildInputs = [ autoreconfHook pkgconfig ];
+  nativeBuildInputs = [ autoreconfHook pkgconfig libnrm ];
 }

@@ -40,6 +40,8 @@ LT_INIT
 
 AC_OPENMP
 
+PKG_CHECK_MODULES([LIBNRM], [libnrm])
+
 # Output
 ########
 
@@ -54,6 +56,8 @@ NRM BENCHMARKS
 
 Version: $PACKAGE_VERSION
 OpenMP Flags: $OPENMP_CFLAGS
+Libnrm Cflags: $LIBNRM_CFLAGS
+Libnrm LDflags: $LIBNRM_LIBS
 
 -------------------------------------------------------------------------------
 EOF

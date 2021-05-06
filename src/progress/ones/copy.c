@@ -12,7 +12,10 @@
 
 #include "nrm-benchmarks.h"
 
+#include <nrm.h>
+
 static double *a, *b;
+static struct nrm_context *context;
 
 int main(int argc, char **argv)
 {
@@ -64,6 +67,10 @@ int main(int argc, char **argv)
 		b[i] = 2.0;
 	}
 
+	/* NRM Context init */
+	context = nrm_ctxt_create();
+	nrm_init(context, argv[0], 0, 0);
+
 	/* one run of the benchmark for free, warms up the memory */
 #pragma omp parallel for
 	for(size_t i = 0; i < array_size; i++)
@@ -73,8 +80,6 @@ int main(int argc, char **argv)
 	 * through the entire array.
 	 */
 
-	/* NRM Context init */
-//	nrm_init(&context, argv[0]);
 
 	for(long int iter = 0; iter < times; iter++)
 	{
@@ -87,7 +92,7 @@ int main(int argc, char **argv)
 			b[i] = a[i];
 
 		nrmb_gettime(&end);
-//		nrm_send_progress(&context, 1);
+		nrm_send_progress(context, 1);
 
 		time = nrmb_timediff(&start, &end);
 		sumtime += time;
@@ -95,7 +100,8 @@ int main(int argc, char **argv)
 		maxtime = NRMB_MAX(time, maxtime);
 	}
 
-//	nrm_fini(&context);
+	nrm_fini(context);
+	nrm_ctxt_delete(context);
 
 	/* compute stats */
 
