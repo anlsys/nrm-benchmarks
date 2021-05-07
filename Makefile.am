@@ -19,8 +19,10 @@ progress_ones_copy_SOURCES = $(UTILS_SOURCES) src/progress/ones/copy.c
 progress_ones_scale_SOURCES = $(UTILS_SOURCES) src/progress/ones/scale.c
 progress_ones_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/add.c
 progress_ones_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/triad.c
+progress_ones_stream_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream.c
 
 bin_PROGRAMS = progress-ones-copy \
 	       progress-ones-scale \
 	       progress-ones-add \
-	       progress-ones-triad
+	       progress-ones-triad \
+	       progress-ones-stream
