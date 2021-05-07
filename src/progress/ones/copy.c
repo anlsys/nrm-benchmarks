@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 	 * be different.
 	 */
 	err = 0;
-	for(size_t i = 0; i < array_size; i++)
+	for(size_t i = 0; i < array_size && err == 0; i++)
 		err = err || !nrmb_check_double(a[i], b[i], 2);
 
 	if(err)
