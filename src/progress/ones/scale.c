@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 {
 	/* configuration parameters:
 	 * - array size in number of double elements
-	 * - number of times to run through the benchmark 
+	 * - number of times to run through the benchmark
 	 */
 	size_t array_size;
 	long int times;
@@ -85,9 +85,9 @@ int main(int argc, char **argv)
 
 	for(long int iter = 0; iter < times; iter++)
 	{
-		int64_t time;	
+		int64_t time;
 		nrmb_gettime(&start);
-		
+
 		/* the actual benchmark */
 #pragma omp parallel for
 		for(size_t i = 0; i < array_size; i++)
@@ -116,15 +116,13 @@ int main(int argc, char **argv)
 		(double) memory_size /1024.0/1024.0);
 	fprintf(stdout, "Kernel was executed: %ld times.\n", times);
 	fprintf(stdout, "Number of threads:   %d\n", num_threads);
-	fprintf(stdout, "Times: avg:          %f min:  %"PRId64" max: %"PRId64"\n",
-		(double) sumtime/times, mintime, maxtime);
-	fprintf(stdout, "Perf: avg:           %f best: %f\n",
-		memory_size/ ((double) sumtime/times),
-		memory_size/ (double) mintime);
+	fprintf(stdout, "Time (s): avg:       %11.6f min:  %11.6f max: %11.6f\n",
+		1.0E-09 * sumtime/times, 1.0E-09 * mintime, 1.0E-09 * maxtime);
+	fprintf(stdout, "Perf (MiB/s): avg:   %12.6f best: %12.6f\n",
+		(2.0E-06 * memory_size)/ (1.0E-09 * sumtime/times),
+		(2.0E-06 * memory_size)/ (1.0E-09 * mintime));
 
-	/* validate the benchmark: for a copy, the minimum about of bits should
-	 * be different.
-	 */
+	/* validate the benchmark: minimum about of bits should be different. */
 	err = 0;
 	for(size_t i = 0; i < array_size; i++)
 		err = err || !nrmb_check_double(6.0, b[i], 2);
@@ -133,5 +131,5 @@ int main(int argc, char **argv)
 		fprintf(stdout, "VALIDATION FAILED!!!!\n");
 	else
 		fprintf(stdout, "VALIDATION PASSED!!!!\n");
-    return err;
+	return err;
 }
