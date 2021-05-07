@@ -15,14 +15,14 @@ UTILS_SOURCES = src/utils.c
 # BENCHMARKS
 ###############################################################################
 
-progress_ones_copy_SOURCES = $(UTILS_SOURCES) src/progress/ones/copy.c
-progress_ones_scale_SOURCES = $(UTILS_SOURCES) src/progress/ones/scale.c
-progress_ones_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/add.c
-progress_ones_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/triad.c
-progress_ones_stream_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream.c
+ones_stream_copy_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/copy.c
+ones_stream_scale_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/scale.c
+ones_stream_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/add.c
+ones_stream_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/triad.c
+ones_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/full.c
 
-bin_PROGRAMS = progress-ones-copy \
-	       progress-ones-scale \
-	       progress-ones-add \
-	       progress-ones-triad \
-	       progress-ones-stream
+bin_PROGRAMS = ones-stream-copy \
+	       ones-stream-scale \
+	       ones-stream-add \
+	       ones-stream-triad \
+	       ones-stream-full
