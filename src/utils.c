@@ -30,3 +30,9 @@ int nrmb_check_double(double ref, double value, int bits)
 	return diff <= NRMB_MAX(NRMB_ABS(ref), NRMB_ABS(value)) * DBL_EPSILON *
 		((1 << bits) - 1);
 }
+
+int nrmb_check_double_prec(double ref, double value, double eps)
+{
+	double diff = NRMB_ABS(ref - value);
+	return diff <= NRMB_MAX(NRMB_ABS(ref), NRMB_ABS(value)) * eps;
+}

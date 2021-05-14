@@ -33,5 +33,6 @@ void nrmb_gettime(nrmb_time_t *now);
 int64_t nrmb_timediff(const nrmb_time_t *start, const nrmb_time_t *end);
 
 int nrmb_check_double(double ref, double value, int bits);
+int nrmb_check_double_prec(double ref, double value, double prec);
 
 #endif

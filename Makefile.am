@@ -21,8 +21,12 @@ ones_stream_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/add.c
 ones_stream_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/triad.c
 ones_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/full.c
 
+NPB_UTILS_SOURCES = src/progress/ones/npb/randdp.c
+ones_npb_ep_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/ep.c
+
 bin_PROGRAMS = ones-stream-copy \
 	       ones-stream-scale \
 	       ones-stream-add \
 	       ones-stream-triad \
-	       ones-stream-full
+	       ones-stream-full \
+	       ones-npb-ep

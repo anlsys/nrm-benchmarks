@@ -12,5 +12,5 @@ mkShell {
   ];
 
   CFLAGS =
-    "-std=c99 -pedantic -Wall -Wextra -Werror";
+    "-std=c99 -pedantic -Wall -Wextra -Werror -Wno-builtin-declaration-mismatch";
 }
