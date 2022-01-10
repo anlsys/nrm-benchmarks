@@ -177,6 +177,7 @@ int main(int argc, char **argv)
 	 * through the entire array.
 	 */
 
+	nrm_send_progress(context, 1, 1, times, 0, 0, 0);
 	for(long int iter = 0; iter < times; iter++)
 	{
 		int64_t time;
@@ -188,7 +189,7 @@ int main(int argc, char **argv)
 		ep_kernel(&gc, &rx, &ry, a, s, an, nn);
 
 		nrmb_gettime(&end);
-		nrm_send_progress(context, 1);
+		nrm_send_progress(context, 1, 0, 0, 0, 0, 0);
 
 		time = nrmb_timediff(&start, &end);
 		sumtime += time;

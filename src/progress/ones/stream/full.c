@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	/* this version of the benchmarks reports one progress each time it goes
 	 * through the entire array.
 	 */
-	nrm_send_progress(context, 1);
+	nrm_send_progress(context, 1, 1, array_size, 0, 0, 0);
 
 
 	for(long int iter = 0; iter < times; iter++)
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 		a[i] = b[i] + scalar*c[i];
 		TEND(3);
 
-		nrm_send_progress(context, 1);
+		nrm_send_progress(context, 1, 0, 0, 0, 0, 0);
 	}
 
 	nrm_fini(context);
