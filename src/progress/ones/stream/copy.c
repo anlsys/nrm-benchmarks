@@ -11,7 +11,6 @@
 #include "config.h"
 
 #include "nrm-benchmarks.h"
-#include "cvector.h"
 
 #include <nrm.h>
 #include <omp.h>
@@ -19,6 +18,8 @@
 
 static double *a, *b;
 static struct nrm_context *context;
+
+static struct nrm_scope *region_scope, **thread_scope;
 
 int main(int argc, char **argv)
 {
@@ -63,6 +64,8 @@ int main(int argc, char **argv)
     a = malloc(memory_size);
     b = malloc(memory_size);
 
+    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
+
 #pragma omp parallel for
     for(size_t i = 0; i < array_size; i++)
     {
@@ -82,9 +85,21 @@ int main(int argc, char **argv)
     /* this version of the benchmarks reports one progress each time it goes
      * through the entire array.
      */
-    // Get that array size
-    int gpu[] = {0,1,4,5,12,13,14,15};
-    nrm_send_progress(context, 1, 1, array_size, 2, gpu, 8);
+    
+    /* Create scopes */
+    for (int i = 0; i < num_threads; i++)
+    {
+        thread_scope[i] = nrm_scope_create();
+    }
+    region_scope = nrm_scope_create();
+
+    /* Get master process scope */
+    unsigned int cpu, node;
+    sched_getcpu(&cpu, &node);
+    nrm_scope_add(region_scope, 0, cpu);
+    nrm_scope_add(region_scope, 1, node);
+    
+    nrm_send_progress(context, 1, region_scope);
 
     for(long int iter = 0; iter < times; iter++)
     {
@@ -96,12 +111,14 @@ int main(int argc, char **argv)
         for(size_t i = 0; i < array_size; i++)
         {
             b[i] = a[i];
-            // Get topology
-            nrm_topo(i);
+            /* Get scopes */
+            nrm_scope_threadshared(region_scope);
+            nrm_scope_threadprivate(thread_scope[omp_get_thread_num()]);
+            nrm_send_progress(context, 1, thread_scope[omp_get_thread_num()]);
         }
         
         nrmb_gettime(&end);
-        nrm_send_progress(context, 1, 0, 0, 0, 0, 0);
+        nrm_send_progress(context, 1, region_scope);
 
         time = nrmb_timediff(&start, &end);
         sumtime += time;
@@ -111,6 +128,13 @@ int main(int argc, char **argv)
 
     nrm_fini(context);
     nrm_ctxt_delete(context);
+
+    /* Delete scopes */
+    nrm_scope_delete(region_scope);
+    for (int i = 0; i < num_threads; i++)
+    {
+        nrm_scope_delete(thread_scope[i]);
+    }
 
     /* compute stats */
 
