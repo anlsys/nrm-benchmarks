@@ -3,4 +3,5 @@ stdenv.mkDerivation {
   src = ../.;
   name = "nrm-benchmarks";
   nativeBuildInputs = [ autoreconfHook pkgconfig libnrm zeromq blas];
+  buildInputs = [ libnrm ];
 }
