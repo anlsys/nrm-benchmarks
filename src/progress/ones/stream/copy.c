@@ -94,11 +94,7 @@ int main(int argc, char **argv)
     region_scope = nrm_scope_create();
 
     /* Get master process scope */
-    unsigned int cpu, node;
-    sched_getcpu(&cpu, &node);
-    nrm_scope_add(region_scope, 0, cpu);
-    nrm_scope_add(region_scope, 1, node);
-    
+    nrm_scope_threadshared(region_scope);
     nrm_send_progress(context, 1, region_scope);
 
     for(long int iter = 0; iter < times; iter++)
