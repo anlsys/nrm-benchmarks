@@ -17,6 +17,8 @@
 static double *a, *b, *c;
 static struct nrm_context *context;
 
+static struct nrm_scope *region_scope, **thread_scope;
+
 int main(int argc, char **argv)
 {
 	/* configuration parameters:
@@ -95,8 +97,17 @@ int main(int argc, char **argv)
 	/* this version of the benchmarks reports one progress each time it goes
 	 * through the entire array.
 	 */
-	nrm_send_progress(context, 1, 1, array_size, 0, 0, 0);
+    /* Create scopes */
+    region_scope = nrm_scope_create();
+    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
+    for (int i = 0; i < num_threads; i++)
+    {
+        thread_scope[i] = nrm_scope_create();
+    }
 
+    /* Get master process scope */
+    nrm_scope_threadshared(region_scope);
+    nrm_send_progress(context, 1, region_scope);
 
 	for(long int iter = 0; iter < times; iter++)
 	{
@@ -133,13 +144,23 @@ int main(int argc, char **argv)
 		a[i] = b[i] + scalar*c[i];
 		TEND(3);
 
-		nrm_send_progress(context, 1, 0, 0, 0, 0, 0);
+        /* Get scopes */
+        nrm_scope_threadshared(region_scope);
+        nrm_scope_threadprivate(thread_scope[omp_get_thread_num()]);
+        nrm_send_progress(context, 1, thread_scope[omp_get_thread_num()]);
 	}
 
 	nrm_fini(context);
 	nrm_ctxt_delete(context);
 
-	/* compute stats */
+    /* Delete scopes */
+    nrm_scope_delete(region_scope);
+    for (int i = 0; i < num_threads; i++)
+    {
+        nrm_scope_delete(thread_scope[i]);
+    }
+	
+    /* compute stats */
 
 	/* report the configuration and timings */
 	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);

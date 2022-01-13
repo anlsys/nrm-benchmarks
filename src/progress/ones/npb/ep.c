@@ -25,6 +25,8 @@ void vranlc (int, double *, double, double []);
 
 static struct nrm_context *context;
 
+static struct nrm_scope *region_scope, **thread_scope;
+
 static double x[2*NK];
 #pragma omp threadprivate(x)
 static double q[NQ];
@@ -176,9 +178,15 @@ int main(int argc, char **argv)
 	/* this version of the benchmarks reports one progress each time it goes
 	 * through the entire array.
 	 */
-
-	nrm_send_progress(context, 1, 1, times, 0, 0, 0);
-	for(long int iter = 0; iter < times; iter++)
+    /* Create scopes */
+    region_scope = nrm_scope_create();
+    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
+    for (int i = 0; i < num_threads; i++)
+    {
+        thread_scope[i] = nrm_scope_create();
+    }
+	
+    for(long int iter = 0; iter < times; iter++)
 	{
 		int64_t time;
 		nrmb_gettime(&start);
@@ -187,9 +195,12 @@ int main(int argc, char **argv)
 		 * so we put it in a separate function
 		 */
 		ep_kernel(&gc, &rx, &ry, a, s, an, nn);
-
 		nrmb_gettime(&end);
-		nrm_send_progress(context, 1, 0, 0, 0, 0, 0);
+        
+        /* Get scopes */
+        nrm_scope_threadshared(region_scope);
+        nrm_scope_threadprivate(thread_scope[omp_get_thread_num()]);
+        nrm_send_progress(context, 1, thread_scope[omp_get_thread_num()]);
 
 		time = nrmb_timediff(&start, &end);
 		sumtime += time;
@@ -200,7 +211,14 @@ int main(int argc, char **argv)
 	nrm_fini(context);
 	nrm_ctxt_delete(context);
 
-	/* report the configuration and timings */
+    /* Delete scopes */
+    nrm_scope_delete(region_scope);
+    for (int i = 0; i < num_threads; i++)
+    {
+        nrm_scope_delete(thread_scope[i]);
+    }
+	
+    /* report the configuration and timings */
 	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);
 	fprintf(stdout, "Version:             %s\n", PACKAGE_VERSION);
 	fprintf(stdout, "Description: one progress per iteration, NPB EP benchmark\n");

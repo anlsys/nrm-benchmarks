@@ -64,8 +64,6 @@ int main(int argc, char **argv)
     a = malloc(memory_size);
     b = malloc(memory_size);
 
-    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
-
 #pragma omp parallel for
     for(size_t i = 0; i < array_size; i++)
     {
@@ -85,13 +83,13 @@ int main(int argc, char **argv)
     /* this version of the benchmarks reports one progress each time it goes
      * through the entire array.
      */
-    
     /* Create scopes */
+    region_scope = nrm_scope_create();
+    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
     for (int i = 0; i < num_threads; i++)
     {
         thread_scope[i] = nrm_scope_create();
     }
-    region_scope = nrm_scope_create();
 
     /* Get master process scope */
     nrm_scope_threadshared(region_scope);
