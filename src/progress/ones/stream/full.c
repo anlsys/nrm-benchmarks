@@ -33,6 +33,8 @@ int main(int argc, char **argv)
 	int64_t maxtime[4] = {0, 0, 0, 0};
 	const char *names[4] = {"Copy", "Scale", "Add", "Triad"};
 	size_t bytes[4] = {2, 2, 3, 3};
+	nrmb_time_t progress_start, progress_end;
+	int64_t progress_time;
 	nrmb_time_t start, end;
 	size_t memory_size;
 	int num_threads;
@@ -77,6 +79,7 @@ int main(int argc, char **argv)
 	/* NRM Context init */
 	context = nrm_ctxt_create();
 	nrm_init(context, argv[0], 0, 0);
+	nrmb_gettime(&progress_start);
 
 	/* one run of the benchmark for free, warms up the memory */
 #pragma omp parallel for
@@ -96,7 +99,6 @@ int main(int argc, char **argv)
 	 * through the entire array.
 	 */
 	nrm_send_progress(context, 1);
-
 
 	for(long int iter = 0; iter < times; iter++)
 	{
@@ -136,9 +138,10 @@ int main(int argc, char **argv)
 		nrm_send_progress(context, 1);
 	}
 
+	nrmb_gettime(&progress_end);
 	nrm_fini(context);
 	nrm_ctxt_delete(context);
-
+	progress_time = nrmb_timediff(&progress_start, &progress_end);
 	/* compute stats */
 
 	/* report the configuration and timings */
@@ -150,6 +153,7 @@ int main(int argc, char **argv)
 		(double) memory_size /1024.0/1024.0);
 	fprintf(stdout, "Kernel was executed: %ld times.\n", times);
 	fprintf(stdout, "Number of threads:   %d\n", num_threads);
+	fprintf(stdout, "Progress Time (ns):   %" PRId64 "\n", progress_time);
 
 	for(size_t i = 0; i < 4; i++) {
 	fprintf(stdout, "%s Time (s): avg: %11.6f min: %11.6f max: %11.6f\n",
