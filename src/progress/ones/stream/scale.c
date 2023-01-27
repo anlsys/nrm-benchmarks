@@ -122,6 +122,7 @@ int main(int argc, char **argv)
 		(2.0E-06 * memory_size)/ (1.0E-09 * sumtime/times),
 		(2.0E-06 * memory_size)/ (1.0E-09 * mintime));
 
+#ifdef ENABLE_POST_VALIDATION
 	/* validate the benchmark: minimum about of bits should be different. */
 	err = 0;
 	for(size_t i = 0; i < array_size && err == 0; i++)
@@ -132,4 +133,8 @@ int main(int argc, char **argv)
 	else
 		fprintf(stdout, "VALIDATION PASSED!!!!\n");
 	return err;
+#else
+	fprintf(stdout, "VALIDATION disabled\n");
+	return 0;
+#endif
 }

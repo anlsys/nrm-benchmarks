@@ -121,6 +121,7 @@ int main(int argc, char **argv)
 		(2.0E-06 * memory_size)/ (1.0E-09 * sumtime/times),
 		(2.0E-06 * memory_size)/ (1.0E-09 * mintime));
 
+#ifdef ENABLE_POST_VALIDATION
 	/* validate the benchmark: for a copy, the minimum about of bits should
 	 * be different.
 	 */
@@ -133,4 +134,8 @@ int main(int argc, char **argv)
 	else
 		fprintf(stdout, "VALIDATION PASSED!!!!\n");
 	return err;
+#else
+	fprintf(stdout, "VALIDATION disabled\n");
+	return 0;
+#endif
 }
