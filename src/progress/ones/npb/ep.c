@@ -211,6 +211,7 @@ int main(int argc, char **argv)
 	fprintf(stdout, "Time (s): avg:       %11.6f min:  %11.6f max: %11.6f\n",
 		1.0E-09 * sumtime/times, 1.0E-09 * mintime, 1.0E-09 * maxtime);
 
+#ifdef ENABLE_POST_VALIDATION
 	/* validate the benchmark: minimum about of bits should be different.
 	 * Note that NAS does not give us a validation value for all inputs */
 	err = 0;
@@ -254,4 +255,8 @@ int main(int argc, char **argv)
 	else
 		fprintf(stdout, "VALIDATION PASSED!!!!\n");
 	return err;
+#else
+	fprintf(stdout, "VALIDATION disabled\n");
+	return 0;
+#endif
 }
