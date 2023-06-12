@@ -1,0 +1,27 @@
+* Compilation: 
+- use the ./compile script
+- check the compiler, and provide a path for OpenBLAS
+- the script compiles both algorithms: "cg" and "bicgstab"
+
+* Launching:
+- use the launch script
+- the kernel name must be provided as an input to the script: either "cg" or "bicgstab"
+- parameters are already set by default:
+	_ argument 1: size of the matrix: impacts the duration of a single iteration (larger 
+	matrix size = longer iteration time)
+    _ argument 2: conditionning of the matrix: impacts the total execution time (good 
+	conditionning = quick convergence, poor condionning = longer convergence)
+	_ argument 3: LOG variable to display the residual for each iteration
+
+* Current default parameters performances:
+- the A matrix and B vector are always the same and do not include random values
+- the convergence criteria is hard-coded in both algorithms (note that a smaller value
+  would lead to a longer total execution time)
+- launching CG with a matrix size of 1000 with a poorly conditionned matrix:
+	_ total execution time                        = 21.8s (on Intel Core i9-11980HK, machine dependent)
+	_ total number of iterations                  = 401 (deterministic)
+	_ signals per second (1 iteration = 1 signal) = 19.3
+- launching BiCGStab with a matrix size of 1000 with a poorly conditionned matrix:
+	_ total execution time                        = 16.06s (on Intel Core i9-11980HK, machine dependent)
+	_ total number of iterations                  = 157 (deterministic)
+	_ signals per second (1 iteration = 1 signal) = 9.8
