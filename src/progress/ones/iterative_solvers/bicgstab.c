@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-// #include "config.h"
-// #include "nrm-benchmarks.h"
-// #include <nrm.h>
+#include "config.h"
+#include "nrm-benchmarks.h"
+#include <nrm.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,14 +21,13 @@
 #include <sys/time.h>
 
 #include <cblas.h>
-#include <lapacke.h>
 
 #include "common.h"
 
 static double *A, *b, *x;
 int LOG;
 
-// static struct nrm_context *context;
+static struct nrm_context *context;
 
 void bicgstab(double *A, double *b, double *x, int n)
 {
@@ -47,6 +46,8 @@ void bicgstab(double *A, double *b, double *x, int n)
     cblas_dcopy(n, b, 1, r, 1);
     cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, -1.0, A, n, x, 1, 1.0, r, 1);
     cblas_dcopy(n, r, 1, r_hat, 1);
+
+    nrm_send_progress(context, 1);
 
     for (int iter = 0; iter < n; ++iter)
     {
@@ -106,6 +107,7 @@ void bicgstab(double *A, double *b, double *x, int n)
             printf("Step: %d Error: %.11lf\n", iter, fabs(rho_prime));
         }
 		total_iterations = iter;
+	nrm_send_progress(context, 1);
     }
 
     free(r);
@@ -114,7 +116,7 @@ void bicgstab(double *A, double *b, double *x, int n)
     free(p);
     free(s);
     free(t);
-	
+
 	printf("BiCGStab total iterations: %d\n", total_iterations);
 }
 
@@ -129,6 +131,9 @@ int main(int argc, char *argv[])
     A = (double *)malloc(n * n * sizeof(double));
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
+
+    context = nrm_ctxt_create();
+    nrm_init(context, argv[0], 0, 0);
 
     if (strcmp(conditionning, "good") == 0)
     {
@@ -150,6 +155,9 @@ int main(int argc, char *argv[])
 	gettimeofday(&start, NULL);
     bicgstab(A, b, x, n);
     gettimeofday(&finish, NULL);
+
+    nrm_fini(context);
+    nrm_ctxt_delete(context);
 
     time = (finish.tv_sec - start.tv_sec);
     time += (finish.tv_usec - start.tv_usec)/1e6;

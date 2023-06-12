@@ -1,6 +1,6 @@
-{ stdenv, autoreconfHook, pkgconfig, libnrm, zeromq }:
+{ stdenv, autoreconfHook, pkgconfig, libnrm, zeromq, blas }:
 stdenv.mkDerivation {
   src = ../.;
   name = "nrm-benchmarks";
-  nativeBuildInputs = [ autoreconfHook pkgconfig libnrm zeromq];
+  nativeBuildInputs = [ autoreconfHook pkgconfig libnrm zeromq blas];
 }

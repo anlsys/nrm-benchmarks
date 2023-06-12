@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-// #include "config.h"
-// #include "nrm-benchmarks.h"
-// #include <nrm.h>
+#include "config.h"
+#include "nrm-benchmarks.h"
+#include <nrm.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,14 +21,13 @@
 #include <sys/time.h>
 
 #include <cblas.h>
-#include <lapacke.h>
 
 #include "common.h"
 
 static double *A, *b, *x;
 int LOG;
 
-// static struct nrm_context *context;
+static struct nrm_context *context;
 
 void conjugate_gradient(double *A, double *b, double *x, int n)
 {
@@ -47,6 +46,8 @@ void conjugate_gradient(double *A, double *b, double *x, int n)
 
     double old_residual, residual;
     old_residual = cblas_ddot(n, r, 1, r, 1);
+
+    nrm_send_progress(context, 1);
 
     for (int iter = 0; iter <= n; iter++)
     {
@@ -77,6 +78,7 @@ void conjugate_gradient(double *A, double *b, double *x, int n)
             printf("Step: %d Error: %.11lf\n", iter, sqrt(old_residual));
         }
 		total_iterations = iter;
+	nrm_send_progress(context, 1);
     }
 
     free(r);
@@ -98,6 +100,9 @@ int main(int argc, char *argv[])
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
 
+    context = nrm_ctxt_create();
+    nrm_init(context, argv[0], 0, 0);
+
     if (strcmp(conditionning, "good") == 0)
     {
         initialize_symmetric_positive_good_conditioning(A, b, x, n);
@@ -118,6 +123,9 @@ int main(int argc, char *argv[])
 	gettimeofday(&start, NULL);
     conjugate_gradient(A, b, x, n);
 	gettimeofday(&finish, NULL);
+
+    nrm_fini(context);
+    nrm_ctxt_delete(context);
 
     time = (finish.tv_sec - start.tv_sec);
     time += (finish.tv_usec - start.tv_usec)/1e6;
