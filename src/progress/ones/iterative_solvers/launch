@@ -1,0 +1,4 @@
+#!/bin/bash
+
+kernel=$1
+./$kernel 1000 poor 0
