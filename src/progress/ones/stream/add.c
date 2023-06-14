@@ -36,8 +36,10 @@ int main(int argc, char **argv)
 	 * to loop through the kernel.
 	 */
 	assert(argc == 3);
+	errno = 0;
 	array_size = strtoull(argv[1], NULL, 0);
 	assert(!errno);
+	errno = 0;
 	times = strtol(argv[2], NULL, 0);
 	assert(!errno);
 
