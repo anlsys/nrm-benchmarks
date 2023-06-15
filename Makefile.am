@@ -31,6 +31,16 @@ ones_solvers_bicgstab_SOURCES = $(UTILS_SOURCES) \
 NPB_UTILS_SOURCES = src/progress/ones/npb/randdp.c
 ones_npb_ep_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/ep.c
 
+phases_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/phases/stream/full.c
+
+phases_solvers_cg_SOURCES = $(UTILS_SOURCES) \
+			  src/progress/phases/iterative_solvers/common.h \
+			  src/progress/phases/iterative_solvers/cg.c
+
+phases_solvers_bicgstab_SOURCES = $(UTILS_SOURCES) \
+			  src/progress/phases/iterative_solvers/common.h \
+			  src/progress/phases/iterative_solvers/bicgstab.c
+
 bin_PROGRAMS = ones-solvers-cg \
 	       ones-solvers-bicgstab \
 	       ones-stream-copy \
@@ -38,4 +48,8 @@ bin_PROGRAMS = ones-solvers-cg \
 	       ones-stream-add \
 	       ones-stream-triad \
 	       ones-stream-full \
-	       ones-npb-ep
+	       ones-npb-ep \
+	       phases-stream-full \
+	       phases-solvers-cg \
+	       phases-solvers-bicgstab
+
