@@ -39,6 +39,8 @@ void conjugate_gradient(double *A, double *b, double *x, int n)
     p = (double *)malloc(n * sizeof(double));
     Ap = (double *)malloc(n * sizeof(double));
 
+    nrm_send_progress(context, 1);
+
     cblas_dcopy(n, b, 1, r, 1);
     cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, -1.0, A, n, x, 1, 1.0, r, 1);
 
@@ -102,6 +104,7 @@ int main(int argc, char *argv[])
 
     context = nrm_ctxt_create();
     nrm_init(context, argv[0], 0, 0);
+    nrm_send_progress(context, 1);
 
     if (strcmp(conditionning, "good") == 0)
     {
