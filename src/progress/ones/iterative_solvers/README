@@ -7,11 +7,12 @@
 - use the launch script
 - the kernel name must be provided as an input to the script: either "cg" or "bicgstab"
 - parameters are already set by default:
-	_ argument 1: size of the matrix: impacts the duration of a single iteration (larger 
+    _ argument 1: size of the matrix: impacts the duration of a single iteration (larger 
 	matrix size = longer iteration time)
     _ argument 2: conditionning of the matrix: impacts the total execution time (good 
 	conditionning = quick convergence, poor condionning = longer convergence)
-	_ argument 3: LOG variable to display the residual for each iteration
+    _ argument 3: LOG variable to display the residual for each iteration
+    _ argument 4: max number of iterations
 
 * Current default parameters performances:
 - the A matrix and B vector are always the same and do not include random values
