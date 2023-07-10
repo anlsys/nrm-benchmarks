@@ -29,7 +29,7 @@ int LOG;
 
 static struct nrm_context *context;
 
-void bicgstab(double *A, double *b, double *x, int n, double criteria)
+void bicgstab(double *A, double *b, double *x, int n, int maxiter)
 {
     int total_iterations = 0;
 
@@ -50,11 +50,9 @@ void bicgstab(double *A, double *b, double *x, int n, double criteria)
 
     nrm_send_progress(context, 1);
 
-    for (int iter = 0; iter < n; ++iter)
+    for (int iter = 0; iter < n && iter < maxiter; ++iter)
     {
         rho = cblas_ddot(n, r_hat, 1, r, 1);
-        if (fabs(rho) < criteria)
-            break;
 
         if (iter == 0)
             cblas_dcopy(n, r, 1, p, 1);
@@ -128,13 +126,11 @@ int main(int argc, char *argv[])
     int n = atoi(argv[1]);
     char *conditionning = argv[2];
     LOG = atoi(argv[3]);
-    int criteria = atoi(argv[4]);
+    int maxiter = atoi(argv[4]);
 
     A = (double *)malloc(n * n * sizeof(double));
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
-
-    double convergence = pow(1, -criteria);
 
     context = nrm_ctxt_create();
     nrm_init(context, argv[0], 0, 0);
@@ -158,7 +154,7 @@ int main(int argc, char *argv[])
 	double time;
 
 	gettimeofday(&start, NULL);
-    bicgstab(A, b, x, n, convergence);
+    bicgstab(A, b, x, n, maxiter);
     gettimeofday(&finish, NULL);
 
     nrm_fini(context);
