@@ -29,9 +29,8 @@ int LOG;
 
 static struct nrm_context *context;
 
-void conjugate_gradient(double *A, double *b, double *x, int n)
+void conjugate_gradient(double *A, double *b, double *x, int n, double criteria)
 {
-    double convergence_criteria = 1e-25;
     int total_iterations = 0;
 
 	double *r, *p, *Ap;
@@ -65,7 +64,7 @@ void conjugate_gradient(double *A, double *b, double *x, int n)
         }
 
         residual = cblas_ddot(n, r, 1, r, 1);
-        if (sqrt(residual) < convergence_criteria)
+        if (sqrt(residual) < criteria)
             break;
 
 #pragma omp parallel for
@@ -92,15 +91,18 @@ void conjugate_gradient(double *A, double *b, double *x, int n)
 
 int main(int argc, char *argv[])
 {
-    assert(argc == 4);
+    assert(argc == 5);
 
     int n = atoi(argv[1]);
     char *conditionning = argv[2];
     LOG = atoi(argv[3]);
+    int criteria = atoi(argv[4]);
 
     A = (double *)malloc(n * n * sizeof(double));
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
+
+    double convergence = pow(1, -criteria);
 
     context = nrm_ctxt_create();
     nrm_init(context, argv[0], 0, 0);
@@ -124,7 +126,7 @@ int main(int argc, char *argv[])
 	double time;
 
 	gettimeofday(&start, NULL);
-    conjugate_gradient(A, b, x, n);
+    conjugate_gradient(A, b, x, n, convergence);
 	gettimeofday(&finish, NULL);
 
     nrm_fini(context);
