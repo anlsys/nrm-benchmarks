@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <float.h>
 
-//#include <nrm.h>
+#include <nrm.h>
 
 #ifndef NRM_BENCHMARKS_H
 #define NRM_BENCHMARKS_H 1
@@ -27,12 +27,11 @@
 #define NRMB_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define NRMB_ABS(a) (((a) < 0) ? -(a) : (a))
 
-typedef struct timespec nrmb_time_t;
-
-void nrmb_gettime(nrmb_time_t *now);
-int64_t nrmb_timediff(const nrmb_time_t *start, const nrmb_time_t *end);
-
 int nrmb_check_double(double ref, double value, int bits);
 int nrmb_check_double_prec(double ref, double value, double prec);
+
+int nrmb_init(const char *);
+int nrmb_finalize();
+int nrmb_send_progress(double value);
 
 #endif

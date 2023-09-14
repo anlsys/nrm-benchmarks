@@ -1,10 +1,35 @@
-{ stdenv, autoreconfHook, pkgconfig, zeromq, gfortran }:
+{ stdenv
+, autoreconfHook
+, bats
+, check
+, czmq
+, git
+, hwloc
+, jansson
+, mpich
+, openmp
+, papi
+, pkgconfig
+, protobufc , zeromq
+}:
 stdenv.mkDerivation {
   src = fetchGit {
     url = "https://github.com/anlsys/libnrm.git";
-    ref = "refs/heads/v0.7.x";
+    ref = "master";
   };
   name = "libnrm";
-  nativeBuildInputs = [ autoreconfHook pkgconfig gfortran ];
-  propagatedBuildInputs = [ zeromq ];
+  prePatch = "echo 0.8.0 > .tarball-version";
+  nativeBuildInputs = [ autoreconfHook pkgconfig git ];
+  buildInputs = [
+    bats
+    check
+    czmq
+    hwloc
+    jansson
+    mpich
+    openmp
+    papi
+    protobufc
+    zeromq
+  ];
 }

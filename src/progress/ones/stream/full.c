@@ -35,9 +35,9 @@ int main(int argc, char **argv)
 	int64_t maxtime[4] = {0, 0, 0, 0};
 	const char *names[4] = {"Copy", "Scale", "Add", "Triad"};
 	size_t bytes[4] = {2, 2, 3, 3};
-	nrmb_time_t progress_start, progress_end;
+	nrm_time_t progress_start, progress_end;
 	int64_t progress_time;
-	nrmb_time_t start, end;
+	nrm_time_t start, end;
 	size_t memory_size;
 	int num_threads;
 
@@ -80,10 +80,9 @@ int main(int argc, char **argv)
 		c[i] = 0.0;
 	}
 
-	/* NRM Context init */
-	context = nrm_ctxt_create();
-	nrm_init(context, argv[0], 0, 0);
-	nrmb_gettime(&progress_start);
+	/* NRM init */
+	nrmb_init(argv[0]);
+	nrm_time_gettime(&progress_start);
 
 	/* one run of the benchmark for free, warms up the memory */
 #pragma omp parallel for
@@ -102,26 +101,17 @@ int main(int argc, char **argv)
 	/* this version of the benchmarks reports one progress each time it goes
 	 * through the entire array.
 	 */
-    /* Create scopes */
-    region_scope = nrm_scope_create();
-    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
-    for (int i = 0; i < num_threads; i++)
-    {
-        thread_scope[i] = nrm_scope_create();
-    }
 
-    /* Get master process scope */
-    nrm_scope_threadshared(region_scope);
-    nrm_send_progress(context, 1, region_scope);
+	nrmb_send_progress(1.0);
 
 	for(long int iter = 0; iter < times; iter++)
 	{
 		int64_t time;
 
-#define TSTART(k) nrmb_gettime(&start)
+#define TSTART(k) nrm_time_gettime(&start)
 #define TEND(i) do { \
-		nrmb_gettime(&end); \
-		time = nrmb_timediff(&start, &end); \
+		nrm_time_gettime(&end); \
+		time = nrm_time_diff(&start, &end); \
 		sumtime[i] += time; \
 		mintime[i] = NRMB_MIN(time, mintime[i]); \
 		maxtime[i] = NRMB_MAX(time, maxtime[i]); \
@@ -149,26 +139,13 @@ int main(int argc, char **argv)
 		a[i] = b[i] + scalar*c[i];
 		TEND(3);
 
-        /* Get scopes */
-        nrm_scope_threadshared(region_scope);
-        nrm_scope_threadprivate(thread_scope[omp_get_thread_num()]);
-        nrm_send_progress(context, 1, thread_scope[omp_get_thread_num()]);
+		nrmb_send_progress(1.0);
 	}
 
-	nrmb_gettime(&progress_end);
-	nrm_fini(context);
-	nrm_ctxt_delete(context);
-	progress_time = nrmb_timediff(&progress_start, &progress_end);
+	nrm_time_gettime(&progress_end);
+	progress_time = nrm_time_timediff(&progress_start, &progress_end);
+	nrmb_finalize();
 	/* compute stats */
-
-    /* Delete scopes */
-    nrm_scope_delete(region_scope);
-    for (int i = 0; i < num_threads; i++)
-    {
-        nrm_scope_delete(thread_scope[i]);
-    }
-	
-    /* compute stats */
 
 	/* report the configuration and timings */
 	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);
