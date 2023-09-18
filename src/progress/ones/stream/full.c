@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 	}
 
 	nrm_time_gettime(&progress_end);
-	progress_time = nrm_time_timediff(&progress_start, &progress_end);
+	progress_time = nrm_time_diff(&progress_start, &progress_end);
 	nrmb_finalize();
 	/* compute stats */
 

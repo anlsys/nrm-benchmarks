@@ -41,7 +41,7 @@ LT_INIT
 AC_OPENMP
 
 PKG_CHECK_MODULES([LIBNRM], [libnrm])
-PKG_CHECK_MODULES([BLAS], [blas])
+#PKG_CHECK_MODULES([BLAS], [blas])
 
 AC_SEARCH_LIBS([log], [m], [], [
   AC_MSG_ERROR([unable to find the log() function])

@@ -10,7 +10,8 @@
 , openmp
 , papi
 , pkgconfig
-, protobufc , zeromq
+, protobufc
+, zeromq
 }:
 stdenv.mkDerivation {
   src = fetchGit {
