@@ -20,6 +20,7 @@ UTILS_SOURCES = src/utils.c
 #ones_stream_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/add.c
 #ones_stream_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/triad.c
 ones_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/full.c
+noprogress_stream_full_SOURCES = $(UTILS_SOURCES) src/noprogress/stream/full.c
 
 #ones_solvers_cg_SOURCES = $(UTILS_SOURCES) \
 #			  src/progress/ones/iterative_solvers/common.h \
@@ -53,4 +54,5 @@ ones_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/full.c
 #	       phases-solvers-cg \
 #	       phases-solvers-bicgstab
 #
-bin_PROGRAMS = ones-stream-full
+bin_PROGRAMS = ones-stream-full \
+	       noprogress-stream-full

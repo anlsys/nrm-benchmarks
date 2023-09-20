@@ -79,7 +79,7 @@ int nrmb_send_progress(double value)
 {
 	nrm_time_t now;
 	nrm_time_gettime(&now);
-	int64_t diff = nrm_time_diff(&last_progres, &now);
+	int64_t diff = nrm_time_diff(&last_progress, &now);
 	global_count += value;
 	if (diff > (int64_t)nrm_ratelimit) {
 		nrm_client_send_event(nrmb_client, now, nrmb_sensor, nrmb_scope, global_count);
