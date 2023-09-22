@@ -36,14 +36,16 @@ int main(int argc, char **argv)
     size_t memory_size;
     int num_threads;
 
-    /* retrieve the size of the allocation and the number of time
-     * to loop through the kernel.
-     */
-    assert(argc == 3);
-    array_size = strtoull(argv[1], NULL, 0);
-    assert(!errno);
-    times = strtol(argv[2], NULL, 0);
-    assert(!errno);
+	/* retrieve the size of the allocation and the number of time
+	 * to loop through the kernel.
+	 */
+	assert(argc == 3);
+	errno = 0;
+	array_size = strtoull(argv[1], NULL, 0);
+	assert(!errno);
+	errno = 0;
+	times = strtol(argv[2], NULL, 0);
+	assert(!errno);
 
     /* ensure that OpenMP is giving us the right number of threads */
 #pragma omp parallel
@@ -147,16 +149,21 @@ int main(int argc, char **argv)
             (2.0E-06 * memory_size)/ (1.0E-09 * sumtime/times),
             (2.0E-06 * memory_size)/ (1.0E-09 * mintime));
 
-    /* validate the benchmark: for a copy, the minimum about of bits should
-     * be different.
-     */
-    err = 0;
-    for(size_t i = 0; i < array_size && err == 0; i++)
-        err = err || !nrmb_check_double(a[i], b[i], 2);
+#ifdef ENABLE_POST_VALIDATION
+	/* validate the benchmark: for a copy, the minimum about of bits should
+	 * be different.
+	 */
+	err = 0;
+	for(size_t i = 0; i < array_size && err == 0; i++)
+		err = err || !nrmb_check_double(a[i], b[i], 2);
 
-    if(err)
-        fprintf(stdout, "VALIDATION FAILED!!!!\n");
-    else
-        fprintf(stdout, "VALIDATION PASSED!!!!\n");
-    return err;
+	if(err)
+		fprintf(stdout, "VALIDATION FAILED!!!!\n");
+	else
+		fprintf(stdout, "VALIDATION PASSED!!!!\n");
+	return err;
+#else
+	fprintf(stdout, "VALIDATION disabled\n");
+	return 0;
+#endif
 }

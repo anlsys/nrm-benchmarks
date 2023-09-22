@@ -41,10 +41,34 @@ LT_INIT
 AC_OPENMP
 
 PKG_CHECK_MODULES([LIBNRM], [libnrm])
+#PKG_CHECK_MODULES([BLAS], [blas])
 
 AC_SEARCH_LIBS([log], [m], [], [
   AC_MSG_ERROR([unable to find the log() function])
 ])
+
+# Feature flags
+###############
+
+# Select whether to validate benchmark computation after its execution.
+# Default is to perform validation.
+AC_ARG_ENABLE([post-validation],
+  [AS_HELP_STRING([--disable-post-validation], [skip post validation])],
+  [case "${enableval}" in
+     yes | no ) enable_post_validation="${enableval}" ;;
+     *) AC_MSG_ERROR([bad value ${enableval} for --disable-post-validation]) ;;
+   esac],
+  [enable_post_validation=yes]
+)
+AM_CONDITIONAL([ENABLE_POST_VALIDATION], [test "x${enable_post_validation}" = "xyes"])
+AS_IF([test "x${enable_post_validation}" = "xyes"],
+  [
+    AC_DEFINE([ENABLE_POST_VALIDATION], [1], [Define to 1 to perform a validation of the benchmark computation])
+  ],
+  [
+    AC_MSG_NOTICE([post validation disabled])
+  ]
+)
 
 # Output
 ########

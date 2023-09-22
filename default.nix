@@ -1,6 +1,6 @@
-{ pkgs ? import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/21.05.tar.gz") {}
+{ pkgs ? import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/23.05.tar.gz") {}
 }:
 pkgs // rec {
-  libnrm = pkgs.callPackage ./nix/libnrm.nix {};
+  libnrm = pkgs.callPackage ./nix/libnrm.nix { openmp = pkgs.llvmPackages_15.openmp; };
   nrmb = pkgs.callPackage ./nix/nrmb.nix { inherit libnrm; };
 }

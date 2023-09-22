@@ -17,8 +17,6 @@
 static double *a, *b, *c;
 static struct nrm_context *context;
 
-static struct nrm_scope *region_scope, **thread_scope;
-
 int main(int argc, char **argv)
 {
 	/* configuration parameters:
@@ -26,7 +24,7 @@ int main(int argc, char **argv)
 	 * - number of times to run through the benchmark
 	 */
 	size_t array_size;
-	long int times;
+	long int outer, inner;
 	double scalar = 3.0;
 
 	/* needed for performance measurement */
@@ -35,22 +33,27 @@ int main(int argc, char **argv)
 	int64_t maxtime[4] = {0, 0, 0, 0};
 	const char *names[4] = {"Copy", "Scale", "Add", "Triad"};
 	size_t bytes[4] = {2, 2, 3, 3};
-	nrm_time_t progress_start, progress_end;
+	nrmb_time_t progress_start, progress_end;
 	int64_t progress_time;
-	nrm_time_t start, end;
+	nrmb_time_t start, end;
 	size_t memory_size;
 	int num_threads;
 
 	/* retrieve the size of the allocation and the number of time
 	 * to loop through the kernel.
 	 */
-	assert(argc == 3);
+	assert(argc == 3 || argc == 4);
 	errno = 0;
 	array_size = strtoull(argv[1], NULL, 0);
 	assert(!errno);
-	errno = 0;
-	times = strtol(argv[2], NULL, 0);
+	outer = strtol(argv[2], NULL, 0);
 	assert(!errno);
+	if (argc == 3)
+		inner = 1;
+	else {
+		inner = strtol(argv[3], NULL, 0);
+		assert(!errno);
+	}
 
 	/* ensure that OpenMP is giving us the right number of threads */
 #pragma omp parallel
@@ -80,9 +83,10 @@ int main(int argc, char **argv)
 		c[i] = 0.0;
 	}
 
-	/* NRM init */
-	nrmb_init(argv[0]);
-	nrm_time_gettime(&progress_start);
+	/* NRM Context init */
+	context = nrm_ctxt_create();
+	nrm_init(context, argv[0], 0, 0);
+	nrmb_gettime(&progress_start);
 
 	/* one run of the benchmark for free, warms up the memory */
 #pragma omp parallel for
@@ -98,53 +102,67 @@ int main(int argc, char **argv)
 	for(size_t i = 0; i < array_size; i++)
 		a[i] = b[i] + scalar*c[i];
 
-	/* this version of the benchmarks reports one progress each time it goes
-	 * through the entire array.
+	/* this version of the benchmarks reports one progress each time one
+	 * of the kernels is done.
 	 */
+	nrm_send_progress(context, 1);
 
-	nrmb_send_progress(1.0);
-
-	for(long int iter = 0; iter < times; iter++)
+	for(long int iter = 0; iter < outer; iter++)
 	{
 		int64_t time;
 
-#define TSTART(k) nrm_time_gettime(&start)
+#define TSTART(k) nrmb_gettime(&start)
 #define TEND(i) do { \
-		nrm_time_gettime(&end); \
-		time = nrm_time_diff(&start, &end); \
+		nrmb_gettime(&end); \
+		time = nrmb_timediff(&start, &end); \
 		sumtime[i] += time; \
 		mintime[i] = NRMB_MIN(time, mintime[i]); \
 		maxtime[i] = NRMB_MAX(time, maxtime[i]); \
 	} while(0)
 
 		/* the actual benchmarks */
-		TSTART(0);
-#pragma omp parallel for
-	for(size_t i = 0; i < array_size; i++)
-		c[i] = a[i];
-		TEND(0);
-		TSTART(1);
-#pragma omp parallel for
-	for(size_t i = 0; i < array_size; i++)
-		b[i] = scalar*c[i];
-		TEND(1);
-		TSTART(2);
-#pragma omp parallel for
-	for(size_t i = 0; i < array_size; i++)
-		c[i] = a[i] + b[i];
-		TEND(2);
-		TSTART(3);
-#pragma omp parallel for
-	for(size_t i = 0; i < array_size; i++)
-		a[i] = b[i] + scalar*c[i];
-		TEND(3);
-
-		nrmb_send_progress(1.0);
+		for(long int k = 0; k < inner; k++)
+		{
+			TSTART(0);
+			#pragma omp parallel for
+			for(size_t i = 0; i < array_size; i++)
+				c[i] = a[i];
+			TEND(0);
+			nrm_send_progress(context, 1);
+		}
+		for(long int k = 0; k < inner; k++)
+		{
+			TSTART(1);
+			#pragma omp parallel for
+			for(size_t i = 0; i < array_size; i++)
+				b[i] = scalar*c[i];
+			TEND(1);
+			nrm_send_progress(context, 1);
+		}
+		for(long int k = 0; k < inner; k++)
+		{
+			TSTART(2);
+			#pragma omp parallel for
+			for(size_t i = 0; i < array_size; i++)
+				c[i] = a[i] + b[i];
+			TEND(2);
+			nrm_send_progress(context, 1);
+		}
+		for(long int k = 0; k < inner; k++)
+		{
+			TSTART(3);
+			#pragma omp parallel for
+			for(size_t i = 0; i < array_size; i++)
+				a[i] = b[i] + scalar*c[i];
+			TEND(3);
+			nrm_send_progress(context, 1);
+		}
 	}
 
-	nrm_time_gettime(&progress_end);
-	progress_time = nrm_time_diff(&progress_start, &progress_end);
-	nrmb_finalize();
+	nrmb_gettime(&progress_end);
+	nrm_fini(context);
+	nrm_ctxt_delete(context);
+	progress_time = nrmb_timediff(&progress_start, &progress_end);
 	/* compute stats */
 
 	/* report the configuration and timings */
@@ -154,16 +172,16 @@ int main(int argc, char **argv)
 	fprintf(stdout, "Array size:          %zu (elements).\n", array_size);
 	fprintf(stdout, "Memory per array:    %.1f MiB.\n",
 		(double) memory_size /1024.0/1024.0);
-	fprintf(stdout, "Kernel was executed: %ld times.\n", times);
+	fprintf(stdout, "Kernel was executed: %ld times.\n", outer*inner);
 	fprintf(stdout, "Number of threads:   %d\n", num_threads);
 	fprintf(stdout, "Progress Time (ns):   %" PRId64 "\n", progress_time);
 
 	for(size_t i = 0; i < 4; i++) {
 	fprintf(stdout, "%s Time (s): avg: %11.6f min: %11.6f max: %11.6f\n",
-		names[i], 1.0E-09 * sumtime[i]/times, 1.0E-09 * mintime[i],
+		names[i], 1.0E-09 * sumtime[i]/(outer*inner), 1.0E-09 * mintime[i],
 		1.0E-09 * maxtime[i]);
 	fprintf(stdout, "%s Perf (MiB/s): avg: %12.6f best: %12.6f\n", names[i],
-		(bytes[i] * 1.0E-06 * memory_size)/ (1.0E-09 * sumtime[i]/times),
+		(bytes[i] * 1.0E-06 * memory_size)/ (1.0E-09 * sumtime[i]/(outer*inner)),
 		(bytes[i] * 1.0E-06 * memory_size)/ (1.0E-09 * mintime[i]));
 	}
 
@@ -171,7 +189,7 @@ int main(int argc, char **argv)
 	/* validate the benchmark: minimum about of bits should be different. */
 	err = 0;
 	double ai = 1.0, bi = 2.0, ci = 0.0;
-	for(long int i = 0; i < times+1; i++) {
+	for(long int i = 0; i < (outer*inner)+1; i++) {
 		ci = ai;
 		bi = scalar*ci;
 		ci = ai+bi;

@@ -38,8 +38,10 @@ int main(int argc, char **argv)
 	 * to loop through the kernel.
 	 */
 	assert(argc == 3);
+	errno = 0;
 	array_size = strtoull(argv[1], NULL, 0);
 	assert(!errno);
+	errno = 0;
 	times = strtol(argv[2], NULL, 0);
 	assert(!errno);
 
@@ -147,6 +149,7 @@ int main(int argc, char **argv)
 		(3.0E-06 * memory_size)/ (1.0E-09 * sumtime/times),
 		(3.0E-06 * memory_size)/ (1.0E-09 * mintime));
 
+#ifdef ENABLE_POST_VALIDATION
 	/* validate the benchmark: minimum about of bits should be different. */
 	err = 0;
 	for(size_t i = 0; i < array_size && err == 0; i++)
@@ -157,4 +160,8 @@ int main(int argc, char **argv)
 	else
 		fprintf(stdout, "VALIDATION PASSED!!!!\n");
 	return err;
+#else
+	fprintf(stdout, "VALIDATION disabled\n");
+	return 0;
+#endif
 }
