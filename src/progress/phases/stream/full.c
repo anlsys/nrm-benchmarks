@@ -15,7 +15,6 @@
 #include <nrm.h>
 
 static double *a, *b, *c;
-static struct nrm_context *context;
 
 int main(int argc, char **argv)
 {
@@ -33,9 +32,9 @@ int main(int argc, char **argv)
 	int64_t maxtime[4] = {0, 0, 0, 0};
 	const char *names[4] = {"Copy", "Scale", "Add", "Triad"};
 	size_t bytes[4] = {2, 2, 3, 3};
-	nrmb_time_t progress_start, progress_end;
+	nrm_time_t progress_start, progress_end;
 	int64_t progress_time;
-	nrmb_time_t start, end;
+	nrm_time_t start, end;
 	size_t memory_size;
 	int num_threads;
 
@@ -83,10 +82,9 @@ int main(int argc, char **argv)
 		c[i] = 0.0;
 	}
 
-	/* NRM Context init */
-	context = nrm_ctxt_create();
-	nrm_init(context, argv[0], 0, 0);
-	nrmb_gettime(&progress_start);
+	/* NRM init */
+	nrmb_init(argv[0]);
+	nrm_time_gettime(&progress_start);
 
 	/* one run of the benchmark for free, warms up the memory */
 #pragma omp parallel for
@@ -105,16 +103,16 @@ int main(int argc, char **argv)
 	/* this version of the benchmarks reports one progress each time one
 	 * of the kernels is done.
 	 */
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 
 	for(long int iter = 0; iter < outer; iter++)
 	{
 		int64_t time;
 
-#define TSTART(k) nrmb_gettime(&start)
+#define TSTART(k) nrm_time_gettime(&start)
 #define TEND(i) do { \
-		nrmb_gettime(&end); \
-		time = nrmb_timediff(&start, &end); \
+		nrm_time_gettime(&end); \
+		time = nrm_time_diff(&start, &end); \
 		sumtime[i] += time; \
 		mintime[i] = NRMB_MIN(time, mintime[i]); \
 		maxtime[i] = NRMB_MAX(time, maxtime[i]); \
@@ -128,7 +126,7 @@ int main(int argc, char **argv)
 			for(size_t i = 0; i < array_size; i++)
 				c[i] = a[i];
 			TEND(0);
-			nrm_send_progress(context, 1);
+			nrmb_send_progress(1.0);
 		}
 		for(long int k = 0; k < inner; k++)
 		{
@@ -137,7 +135,7 @@ int main(int argc, char **argv)
 			for(size_t i = 0; i < array_size; i++)
 				b[i] = scalar*c[i];
 			TEND(1);
-			nrm_send_progress(context, 1);
+			nrmb_send_progress(1.0);
 		}
 		for(long int k = 0; k < inner; k++)
 		{
@@ -146,7 +144,7 @@ int main(int argc, char **argv)
 			for(size_t i = 0; i < array_size; i++)
 				c[i] = a[i] + b[i];
 			TEND(2);
-			nrm_send_progress(context, 1);
+			nrmb_send_progress(1.0);
 		}
 		for(long int k = 0; k < inner; k++)
 		{
@@ -155,14 +153,13 @@ int main(int argc, char **argv)
 			for(size_t i = 0; i < array_size; i++)
 				a[i] = b[i] + scalar*c[i];
 			TEND(3);
-			nrm_send_progress(context, 1);
+			nrmb_send_progress(1.0);
 		}
 	}
 
-	nrmb_gettime(&progress_end);
-	nrm_fini(context);
-	nrm_ctxt_delete(context);
-	progress_time = nrmb_timediff(&progress_start, &progress_end);
+	nrm_time_gettime(&progress_end);
+	nrmb_finalize();
+	progress_time = nrm_time_diff(&progress_start, &progress_end);
 	/* compute stats */
 
 	/* report the configuration and timings */

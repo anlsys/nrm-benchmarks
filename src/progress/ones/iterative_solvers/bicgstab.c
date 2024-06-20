@@ -27,8 +27,6 @@
 static double *A, *b, *x;
 int LOG;
 
-static struct nrm_context *context;
-
 void bicgstab(double *A, double *b, double *x, int n, int maxiter)
 {
     int total_iterations = 0;
@@ -41,14 +39,14 @@ void bicgstab(double *A, double *b, double *x, int n, int maxiter)
     double *t = (double *)malloc(n * sizeof(double));
     double alpha, omega, rho, rho_prime = 1.0;
 
-    nrm_send_progress(context, 1);
+    nrmb_send_progress(1.0);
 
     // Initial residual
     cblas_dcopy(n, b, 1, r, 1);
     cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, -1.0, A, n, x, 1, 1.0, r, 1);
     cblas_dcopy(n, r, 1, r_hat, 1);
 
-    nrm_send_progress(context, 1);
+    nrmb_send_progress(1.0);
 
     for (int iter = 0; iter < n && iter < maxiter; ++iter)
     {
@@ -106,7 +104,7 @@ void bicgstab(double *A, double *b, double *x, int n, int maxiter)
             printf("Step: %d Error: %.11lf\n", iter, fabs(rho_prime));
         }
 		total_iterations = iter;
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
     }
 
     free(r);
@@ -132,9 +130,8 @@ int main(int argc, char *argv[])
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
 
-    context = nrm_ctxt_create();
-    nrm_init(context, argv[0], 0, 0);
-    nrm_send_progress(context, 1);
+    nrmb_init(argv[0]);
+    nrmb_send_progress(1.0);
 
     if (strcmp(conditionning, "good") == 0)
     {
@@ -157,8 +154,7 @@ int main(int argc, char *argv[])
     bicgstab(A, b, x, n, maxiter);
     gettimeofday(&finish, NULL);
 
-    nrm_fini(context);
-    nrm_ctxt_delete(context);
+    nrmb_finalize();
 
     time = (finish.tv_sec - start.tv_sec);
     time += (finish.tv_usec - start.tv_usec)/1e6;

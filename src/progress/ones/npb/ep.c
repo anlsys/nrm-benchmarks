@@ -23,10 +23,6 @@
 double randlc (double *, double);
 void vranlc (int, double *, double, double []);
 
-static struct nrm_context *context;
-
-static struct nrm_scope *region_scope, **thread_scope;
-
 static double x[2*NK];
 #pragma omp threadprivate(x)
 static double q[NQ];
@@ -117,7 +113,7 @@ int main(int argc, char **argv)
 
 	/* needed for performance measurement */
 	int64_t sumtime = 0, mintime = INT64_MAX, maxtime = 0;
-	nrmb_time_t start, end;
+	nrm_time_t start, end;
 	int num_threads;
 
 	/* retrieve the size of the problem and initialize the rest of the
@@ -174,52 +170,34 @@ int main(int argc, char **argv)
 	gc = 0.0;
 
 	/* NRM Context init */
-	context = nrm_ctxt_create();
-	nrm_init(context, argv[0], 0, 0);
+	nrmb_init(argv[0]);
 
 	/* this version of the benchmarks reports one progress each time it goes
 	 * through the entire array.
 	 */
-    /* Create scopes */
-    region_scope = nrm_scope_create();
-    thread_scope = malloc(num_threads*sizeof(nrm_scope_t*));
-    for (int i = 0; i < num_threads; i++)
-    {
-        thread_scope[i] = nrm_scope_create();
-    }
 	
     for(long int iter = 0; iter < times; iter++)
 	{
 		int64_t time;
-		nrmb_gettime(&start);
+		nrm_time_gettime(&start);
 
 		/* the actual benchmark is quite involved,
 		 * so we put it in a separate function
 		 */
 		ep_kernel(&gc, &rx, &ry, a, s, an, nn);
-		nrmb_gettime(&end);
+		nrm_time_gettime(&end);
         
-        /* Get scopes */
-        nrm_scope_threadshared(region_scope);
-        nrm_scope_threadprivate(thread_scope[omp_get_thread_num()]);
-        nrm_send_progress(context, 1, thread_scope[omp_get_thread_num()]);
+		nrmb_send_progress(1.0);
 
-		time = nrmb_timediff(&start, &end);
+		time = nrm_time_diff(&start, &end);
 		sumtime += time;
 		mintime = NRMB_MIN(time, mintime);
 		maxtime = NRMB_MAX(time, maxtime);
 	}
 
-	nrm_fini(context);
-	nrm_ctxt_delete(context);
+	nrmb_finalize();
 
-    /* Delete scopes */
-    nrm_scope_delete(region_scope);
-    for (int i = 0; i < num_threads; i++)
-    {
-        nrm_scope_delete(thread_scope[i]);
-    }
-	
+
     /* report the configuration and timings */
 	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);
 	fprintf(stdout, "Version:             %s\n", PACKAGE_VERSION);

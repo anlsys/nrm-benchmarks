@@ -27,7 +27,6 @@
 static double *A, *b, *x;
 int LOG;
 
-static struct nrm_context *context;
 
 void conjugate_gradient(double *A, double *b, double *x, int n, int maxiter)
 {
@@ -38,7 +37,7 @@ void conjugate_gradient(double *A, double *b, double *x, int n, int maxiter)
     p = (double *)malloc(n * sizeof(double));
     Ap = (double *)malloc(n * sizeof(double));
 
-    nrm_send_progress(context, 1);
+    nrmb_send_progress(1.0);
 
     cblas_dcopy(n, b, 1, r, 1);
     cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, -1.0, A, n, x, 1, 1.0, r, 1);
@@ -48,7 +47,7 @@ void conjugate_gradient(double *A, double *b, double *x, int n, int maxiter)
     double old_residual, residual;
     old_residual = cblas_ddot(n, r, 1, r, 1);
 
-    nrm_send_progress(context, 1);
+    nrmb_send_progress(1.0);
 
     for (int iter = 0; iter <= n && iter <= maxiter; iter++)
     {
@@ -77,7 +76,7 @@ void conjugate_gradient(double *A, double *b, double *x, int n, int maxiter)
             printf("Step: %d Error: %.11lf\n", iter, sqrt(old_residual));
         }
 		total_iterations = iter;
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
     }
 
     free(r);
@@ -100,9 +99,8 @@ int main(int argc, char *argv[])
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
 
-    context = nrm_ctxt_create();
-    nrm_init(context, argv[0], 0, 0);
-    nrm_send_progress(context, 1);
+    nrmb_init(argv[0]);
+    nrmb_send_progress(1.0);
 
     if (strcmp(conditionning, "good") == 0)
     {
@@ -125,8 +123,7 @@ int main(int argc, char *argv[])
     conjugate_gradient(A, b, x, n, maxiter);
 	gettimeofday(&finish, NULL);
 
-    nrm_fini(context);
-    nrm_ctxt_delete(context);
+    nrmb_finalize();
 
     time = (finish.tv_sec - start.tv_sec);
     time += (finish.tv_usec - start.tv_usec)/1e6;
