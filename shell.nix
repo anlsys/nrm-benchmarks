@@ -2,7 +2,7 @@
 { pkgs ? import ./. { } }:
 with pkgs;
 mkShell {
-  inputsFrom = [ nrmb ] ++ libnrm.buildInputs;
+  inputsFrom = [ nrmb ];
   nativeBuildInputs = [ autoreconfHook pkgconfig ];
   buildInputs = [
     # deps for debug

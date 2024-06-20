@@ -15,10 +15,10 @@ UTILS_SOURCES = src/utils.c
 # BENCHMARKS
 ###############################################################################
 
-#ones_stream_copy_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/copy.c
-#ones_stream_scale_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/scale.c
-#ones_stream_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/add.c
-#ones_stream_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/triad.c
+ones_stream_copy_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/copy.c
+ones_stream_scale_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/scale.c
+ones_stream_add_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/add.c
+ones_stream_triad_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/triad.c
 ones_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/ones/stream/full.c
 noprogress_stream_full_SOURCES = $(UTILS_SOURCES) src/noprogress/stream/full.c
 
@@ -55,4 +55,8 @@ noprogress_stream_full_SOURCES = $(UTILS_SOURCES) src/noprogress/stream/full.c
 #	       phases-solvers-bicgstab
 #
 bin_PROGRAMS = ones-stream-full \
+	       ones-stream-copy \
+	       ones-stream-scale \
+	       ones-stream-add \
+	       ones-stream-triad \
 	       noprogress-stream-full

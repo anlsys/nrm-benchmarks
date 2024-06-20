@@ -15,9 +15,6 @@
 #include <nrm.h>
 
 static double *a, *b, *c;
-static struct nrm_context *context;
-
-static struct nrm_scope *region_scope, **thread_scope;
 
 int main(int argc, char **argv)
 {

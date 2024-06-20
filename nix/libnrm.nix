@@ -24,13 +24,15 @@ stdenv.mkDerivation {
   buildInputs = [
     bats
     check
-    czmq
     hwloc
     jansson
     mpich
     openmp
     papi
     protobufc
+  ];
+  propagatedBuildInputs = [
+    czmq
     zeromq
   ];
 }
