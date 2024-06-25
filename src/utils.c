@@ -86,4 +86,5 @@ int nrmb_send_progress(double value)
 		global_count = 0.0;
 		last_progress = now;
 	}
+	return 0;
 }

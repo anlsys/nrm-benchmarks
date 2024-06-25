@@ -27,8 +27,6 @@
 static double *A, *b, *x;
 int LOG;
 
-static struct nrm_context *context;
-
 void bicgstab(double *A, double *b, double *x, int n)
 {
     double convergence_criteria = 1e-30;
@@ -43,12 +41,12 @@ void bicgstab(double *A, double *b, double *x, int n)
     double alpha, omega, rho, rho_prime = 1.0;
 
     // Initial residual
-    nrm_send_progress(context, 1);
+    nrmb_send_progress(1.0);
     cblas_dcopy(n, b, 1, r, 1);
     cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, -1.0, A, n, x, 1, 1.0, r, 1);
     cblas_dcopy(n, r, 1, r_hat, 1);
 
-    nrm_send_progress(context, 1);
+    nrmb_send_progress(1.0);
 
     for (int iter = 0; iter < n; ++iter)
     {
@@ -56,7 +54,7 @@ void bicgstab(double *A, double *b, double *x, int n)
         if (fabs(rho) < convergence_criteria)
             break;
 
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
         if (iter == 0)
             cblas_dcopy(n, r, 1, p, 1);
         else
@@ -69,19 +67,19 @@ void bicgstab(double *A, double *b, double *x, int n)
                 p[i] = r[i] + beta * (p[i] - omega * v[i]);
             }
         }
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 
         cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, 1.0, A, n, p, 1, 0.0, v, 1);
 
         alpha = rho / cblas_ddot(n, r_hat, 1, v, 1);
 
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 #pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
             s[i] = r[i] - alpha * v[i];
         }
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 
         double s_norm = cblas_dnrm2(n, s, 1);
         if (s_norm < 1e-10)
@@ -89,26 +87,26 @@ void bicgstab(double *A, double *b, double *x, int n)
             cblas_daxpy(n, alpha, p, 1, x, 1);
             break;
         }
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 
         cblas_dgemv(CblasRowMajor, CblasNoTrans, n, n, 1.0, A, n, s, 1, 0.0, t, 1);
 
         omega = cblas_ddot(n, t, 1, s, 1) / cblas_ddot(n, t, 1, t, 1);
 
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 #pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
             x[i] = x[i] + alpha * p[i] + omega * s[i];
         }
 
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 #pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
             r[i] = s[i] - omega * t[i];
         }
-	nrm_send_progress(context, 1);
+	nrmb_send_progress(1.0);
 
         rho_prime = rho;
         if (LOG)
@@ -140,9 +138,8 @@ int main(int argc, char *argv[])
     b = (double *)malloc(n * sizeof(double));
     x = (double *)malloc(n * sizeof(double));
 
-    context = nrm_ctxt_create();
-    nrm_init(context, argv[0], 0, 0);
-    nrm_send_progress(context, 1);
+    nrmb_init(argv[0]);
+    nrmb_send_progress(1.0);
 
     if (strcmp(conditionning, "good") == 0)
     {
@@ -165,8 +162,7 @@ int main(int argc, char *argv[])
     bicgstab(A, b, x, n);
     gettimeofday(&finish, NULL);
 
-    nrm_fini(context);
-    nrm_ctxt_delete(context);
+    nrmb_finalize();
 
     time = (finish.tv_sec - start.tv_sec);
     time += (finish.tv_usec - start.tv_usec)/1e6;
