@@ -31,6 +31,7 @@ ones_solvers_bicgstab_SOURCES = $(UTILS_SOURCES) \
 
 NPB_UTILS_SOURCES = src/progress/ones/npb/randdp.c
 ones_npb_ep_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/ep.c
+ones_npb_is_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/is.c
 
 phases_stream_full_SOURCES = $(UTILS_SOURCES) src/progress/phases/stream/full.c
 
@@ -50,6 +51,7 @@ bin_PROGRAMS = ones-solvers-cg \
 	       ones-stream-triad \
 	       ones-stream-full \
 	       ones-npb-ep \
+	       ones-npb-is \
 	       phases-stream-full \
 	       phases-solvers-cg \
 	       phases-solvers-bicgstab \
