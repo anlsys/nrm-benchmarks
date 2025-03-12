@@ -3,7 +3,7 @@
 with pkgs;
 mkShell {
   inputsFrom = [ nrmb ];
-  nativeBuildInputs = [ autoreconfHook pkgconfig ];
+  nativeBuildInputs = [ autoreconfHook pkg-config ];
   buildInputs = [
     # deps for debug
     gdb
