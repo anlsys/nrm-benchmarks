@@ -41,7 +41,7 @@ LT_INIT
 AC_OPENMP
 
 PKG_CHECK_MODULES([LIBNRM], [libnrm])
-PKG_CHECK_MODULES([BLAS], [blas])
+PKG_CHECK_MODULES([BLAS], [cblas])
 
 AC_SEARCH_LIBS([log], [m], [], [
   AC_MSG_ERROR([unable to find the log() function])
@@ -83,9 +83,11 @@ cat <<EOF
 NRM BENCHMARKS
 
 Version: $PACKAGE_VERSION
-OpenMP Flags: $OPENMP_CFLAGS
-Libnrm Cflags: $LIBNRM_CFLAGS
-Libnrm LDflags: $LIBNRM_LIBS
+OpenMP FLAGS: $OPENMP_CFLAGS
+Libnrm CFLAGS: $LIBNRM_CFLAGS
+Libnrm LDFLAGS: $LIBNRM_LIBS
+BLAS CFLAGS: $BLAS_CFLAGS
+BLAS LDFLAGS: $BLAS_LIBS
 
 -------------------------------------------------------------------------------
 EOF
