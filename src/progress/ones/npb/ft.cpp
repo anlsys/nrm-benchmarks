@@ -304,12 +304,10 @@ int main(int argc, char **argv){
 
 			evolve(u0, u1, twiddle, dims[0], dims[1], dims[2]);
 			fft(-1, u1, u1);
-
-
 			#pragma omp barrier
-			checksum(iter, u1, dims[0], dims[1], dims[2]);
 
 			nrm_time_gettime(&end);
+			
 			#pragma omp master
 			{
 				nrmb_send_progress(1.0);
@@ -496,40 +494,6 @@ static void cfftz(int is,
 		}
 		fftz2(is, l + 1, m, n, FFTBLOCK, FFTBLOCKPAD, u, y, x);
 	}	
-}
-
-static void checksum(int i,
-		void* pointer_u1,
-		int d1,
-		int d2,
-		int d3){
-
-	dcomplex (*u1)[NY][NX] = (dcomplex(*)[NY][NX])pointer_u1;
-	int j,q,r,s;
-	dcomplex chk_worker = dcomplex_create(0.0, 0.0);
-	static dcomplex chk;
-
-	#pragma omp single
-		chk = dcomplex_create(0.0, 0.0);
-
-	#pragma omp for
-	for(j=1; j<=1024; j++){
-		q = j % NX;
-		r = (3*j) % NY;
-		s = (5*j) % NZ;
-		chk_worker = dcomplex_add(chk_worker, u1[s][r][q]);
-	}
-
-	#pragma omp critical
-		chk = dcomplex_add(chk, chk_worker);
-	
-	#pragma omp barrier
-	#pragma omp single
-	{
-		chk = dcomplex_div2(chk, (double)(NTOTAL));
-		printf(" T =%5d     Checksum =%22.12e%22.12e\n", i, chk.real, chk.imag);
-		sums[i] = chk;
-	}
 }
 
 /*

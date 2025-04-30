@@ -117,7 +117,6 @@ static int (*m1)=(int*)malloc(sizeof(int)*(MAXLEVEL+1));
 static int (*m2)=(int*)malloc(sizeof(int)*(MAXLEVEL+1));
 static int (*m3)=(int*)malloc(sizeof(int)*(MAXLEVEL+1));
 static int (*ir)=(int*)malloc(sizeof(int)*(MAXLEVEL+1));
-static int (*debug_vec)=(int*)malloc(sizeof(int)*(8));
 static double (*u)=(double*)malloc(sizeof(double)*(NR));
 static double (*v)=(double*)malloc(sizeof(double)*(NV));
 static double (*r)=(double*)malloc(sizeof(double)*(NR));
@@ -132,11 +131,9 @@ static void mg3P(double u[], double v[], double r[], double a[4], double c[4], i
 static void norm2u3(void* pointer_r, int n1, int n2, int n3, double* rnm2, double* rnmu, int nx, int ny, int nz);
 static double power(double a, int n);
 static void psinv(void* pointer_r, void* pointer_u, int n1, int n2, int n3, double c[4], int k);
-static void rep_nrm(void* pointer_u, int n1, int n2, int n3, char* title, int kk);
 static void resid(void* pointer_u, void* pointer_v, void* pointer_r, int n1, int n2, int n3, double a[4], int k);
 static void rprj3(void* pointer_r, int m1k, int m2k, int m3k, void* pointer_s, int m1j, int m2j, int m3j, int k);
 static void setup(int* n1, int* n2, int* n3, int k);
-static void showall(void* pointer_z, int n1, int n2, int n3);
 static void zero3(void* pointer_z, int n1, int n2, int n3);
 static void zran3(void* pointer_z, int n1, int n2, int n3, int nx, int ny, int k);
 
@@ -255,6 +252,8 @@ int main(int argc, char *argv[]){
 	
 		norm2u3(r,n1,n2,n3,&rnm2,&rnmu,nx[lt],ny[lt],nz[lt]);
 	} /* end parallel */
+
+	nrmb_finalize();
 
 	/* report the configuration and timings */
 	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);
@@ -519,17 +518,6 @@ static void interp(void* pointer_z, int mm1, int mm2, int mm3, void* pointer_u, 
 			}
 		}
 	}
-	#pragma omp single
-    {
-		if(debug_vec[0] >= 1){
-			rep_nrm(z,mm1,mm2,mm3,(char*)"z: inter",k-1);
-			rep_nrm(u,n1,n2,n3,(char*)"u: inter",k);
-		}
-		if(debug_vec[5] >= k){
-			showall(z,mm1,mm2,mm3);
-			showall(u,n1,n2,n3);
-		}
-	}
 }
 
 /* 
@@ -720,27 +708,6 @@ static void psinv(void* pointer_r, void* pointer_u, int n1, int n2, int n3, doub
 	 */
 	comm3(u,n1,n2,n3,k);
 
-	if(debug_vec[0] >= 1){
-		#pragma omp single
-			rep_nrm(u,n1,n2,n3,(char*)"   psinv",k);
-	}
-
-	if(debug_vec[3] >= k){
-		#pragma omp single
-			showall(u,n1,n2,n3);
-	}
-}
-
-/*
- * ---------------------------------------------------------------------
- * report on norm
- * ---------------------------------------------------------------------
- */
-static void rep_nrm(void* pointer_u, int n1, int n2, int n3, char* title, int kk){
-	double rnm2, rnmu;
-	norm2u3(pointer_u,n1,n2,n3,&rnm2,&rnmu,nx[kk],ny[kk],nz[kk]);
-	#pragma omp master
-		printf(" Level%2d in %8s: norms =%21.14e%21.14e\n", kk, title, rnm2, rnmu);
 }
 
 /*
@@ -807,15 +774,6 @@ static void resid(void* pointer_u, void* pointer_v, void* pointer_r, int n1, int
 	 */
 	comm3(r,n1,n2,n3,k);
 
-	if(debug_vec[0] >= 1){
-		#pragma omp single
-			rep_nrm(r,n1,n2,n3,(char*)"   resid",k);
-	}
-
-	if(debug_vec[2] >= k){
-		#pragma omp single
-			showall(r,n1,n2,n3);
-	}
 }
 
 /*
@@ -890,15 +848,6 @@ static void rprj3(void* pointer_r, int m1k, int m2k, int m3k, void* pointer_s, i
 	j=k-1;
 	comm3(s,m1j,m2j,m3j,j);
 
-	if(debug_vec[0] >= 1){
-		#pragma omp single
-			rep_nrm(s,m1j,m2j,m3j,(char*)"   rprj3",k-1);	
-	}
-
-	if(debug_vec[4] >= k){
-		#pragma omp single
-			showall(s,m1j,m2j,m3j);
-	}
 }
 
 static void setup(int* n1, int* n2, int* n3, int k){
@@ -947,40 +896,6 @@ static void setup(int* n1, int* n2, int* n3, int k){
 		ir[j] = ir[j+1]+ONE*m1[j+1]*m2[j+1]*m3[j+1];
 	}
 
-	if(debug_vec[1] >= 1){
-		printf(" in setup, \n");
-		printf("   k  lt  nx  ny  nz  n1  n2  n3 is1 is2 is3 ie1 ie2 ie3\n");
-		printf("%4d%4d%4d%4d%4d%4d%4d%4d%4d%4d%4d%4d%4d%4d\n", 
-				k,lt,ng[k][0],ng[k][1],ng[k][2],*n1,*n2,*n3,is1,is2,is3,ie1,ie2,ie3);
-	}
-}
-
-static void showall(void* pointer_z, int n1, int n2, int n3){
-#ifdef __clang__
-	using custom_cast = double (*)[n2][n1];
-	custom_cast z = reinterpret_cast<custom_cast>(pointer_z);	
-#else
-	double (*z)[n2][n1] = (double (*)[n2][n1])pointer_z;	
-#endif
-
-	int i1,i2,i3;
-	int m1, m2, m3;
-
-	m1 = min(n1,18);
-	m2 = min(n2,14);
-	m3 = min(n3,18);
-
-	printf("\n");
-	for(i3 = 0; i3 < m3; i3++){
-		for(i2 = 0; i2 < m2; i2++){
-			for(i1 = 0; i1 < m1; i1++){			
-				printf("%6.3f", z[i3][i2][i1]);
-			}
-			printf("\n");
-		}
-		printf(" - - - - - - - \n");
-	}
-	printf("\n");
 }
 
 static void zero3(void* pointer_z, int n1, int n2, int n3){
