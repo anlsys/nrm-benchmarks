@@ -30,6 +30,7 @@ ones_solvers_bicgstab_SOURCES = $(UTILS_SOURCES) \
 			  src/progress/ones/iterative_solvers/bicgstab.c
 
 NPB_UTILS_SOURCES = src/progress/ones/npb/randdp.c
+ones_npb_cg_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/cg.cpp src/progress/ones/npb/npb-CPP.hpp
 ones_npb_ep_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/ep.c
 ones_npb_is_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/is.c
 ones_npb_ft_SOURCES = $(UTILS_SOURCES) $(NPB_UTILS_SOURCES) src/progress/ones/npb/ft.cpp src/progress/ones/npb/npb-CPP.hpp
@@ -52,6 +53,7 @@ bin_PROGRAMS = ones-solvers-cg \
 	       ones-stream-add \
 	       ones-stream-triad \
 	       ones-stream-full \
+	       ones-npb-cg \
 	       ones-npb-ep \
 	       ones-npb-is \
 	       ones-npb-ft \

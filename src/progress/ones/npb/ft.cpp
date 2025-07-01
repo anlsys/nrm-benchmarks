@@ -327,8 +327,8 @@ int main(int argc, char **argv){
 	fprintf(stdout, "Version:             %s\n", PACKAGE_VERSION);
 	fprintf(stdout,
 		"Description: one progress per iteration, NPB FT benchmark\n");
-	fprintf(stdout, "Problem size:        %zu.\n", NX);
-	fprintf(stdout, "Kernel was executed: %ld times.\n", niter);
+	fprintf(stdout, "Problem size:        %zu.\n", (size_t)NX);
+	fprintf(stdout, "Kernel was executed: %d times.\n", niter);
 	fprintf(stdout, "Number of threads:   %d\n", num_threads);
 	fprintf(stdout, "Time (s): avg:       %11.6f min:  %11.6f max: %11.6f\n",
 		1.0E-09 * sumtime / niter, 1.0E-09 * mintime, 1.0E-09 * maxtime);
