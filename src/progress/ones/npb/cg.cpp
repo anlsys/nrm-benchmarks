@@ -224,6 +224,7 @@ int main(int argc, char **argv){
 	 * to local, i.e., (0 --> lastcol-firstcol)
 	 * ---------------------------------------------------------------------
 	 */
+	nrmb_init(argv[0]);
 	#pragma omp parallel private(it,i,j,k)	
 	{
 		#pragma omp for nowait
@@ -306,7 +307,6 @@ int main(int argc, char **argv){
 		 * ---->
 		 * --------------------------------------------------------------------
 		 */
-		nrmb_init(argv[0]);
 		for(it = 1; it <= niter; it++){
 			int64_t time;
 			nrm_time_gettime(&start);
