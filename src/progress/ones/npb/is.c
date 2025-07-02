@@ -283,18 +283,18 @@ int main(int argc, char **argv) {
 
 #pragma omp parallel
   {
-	  bucket_ptrs = (int *)calloc(sizeof(int), NUM_BUCKETS);
+	  bucket_ptrs = (int *)calloc(NUM_BUCKETS, sizeof(int));
 	  assert(bucket_ptrs != NULL);
   }
 
-  bucket_size = (int **)calloc(sizeof(int *), num_threads);
+  bucket_size = (int **)calloc(num_threads, sizeof(int *));
   for (int i = 0; i < num_threads; i++) {
-    bucket_size[i] = (int *)calloc(sizeof(int), NUM_BUCKETS);
+    bucket_size[i] = (int *)calloc(NUM_BUCKETS, sizeof(int));
   }
 
-  key_array = (int *)calloc(sizeof(int), SIZE_OF_BUFFERS);
-  key_buff1 = (int *)calloc(sizeof(int), MAX_KEY);
-  key_buff2 = (int *)calloc(sizeof(int), SIZE_OF_BUFFERS);
+  key_array = (int *)calloc(SIZE_OF_BUFFERS, sizeof(int));
+  key_buff1 = (int *)calloc(MAX_KEY, sizeof(int));
+  key_buff2 = (int *)calloc(SIZE_OF_BUFFERS, sizeof(int));
 
 #pragma omp parallel for
   for (int i = 0; i < NUM_KEYS; i++)
