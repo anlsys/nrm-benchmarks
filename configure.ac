@@ -27,7 +27,6 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects 1.12])
 AC_LANG([C])
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
-AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_CPP
 AC_TYPE_SIZE_T
@@ -70,11 +69,15 @@ AS_IF([test "x${enable_post_validation}" = "xyes"],
   ]
 )
 
+AX_MPI(have_mpi="true",have_mpi="false")
+AM_CONDITIONAL([HAVE_MPI], [test "x$have_mpi" == "xtrue"])
+
 # Output
 ########
 
 AC_CONFIG_HEADERS([src/config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+		 src/mpi/Makefile])
 AC_OUTPUT
 
 cat <<EOF
@@ -84,6 +87,9 @@ NRM BENCHMARKS
 
 Version: $PACKAGE_VERSION
 OpenMP FLAGS: $OPENMP_CFLAGS
+MPI Enable: $have_mpi
+MPI CC: $MPICC
+MPI Libs: $MPILIBS
 Libnrm CFLAGS: $LIBNRM_CFLAGS
 Libnrm LDFLAGS: $LIBNRM_LIBS
 BLAS CFLAGS: $BLAS_CFLAGS
