@@ -56,3 +56,13 @@ bin_PROGRAMS = ones-solvers-cg \
 	       phases-solvers-cg \
 	       phases-solvers-bicgstab \
 	       noprogress-stream-full
+
+
+###############################################################################
+# MPI BENCHMARKS
+###############################################################################
+
+if HAVE_MPI
+SUBDIRS = src/mpi
+endif	
+

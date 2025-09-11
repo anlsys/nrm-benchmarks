@@ -1,0 +1,145 @@
+/*******************************************************************************
+ * Copyright 2021 UChicago Argonne, LLC.
+ * (c.f. AUTHORS, LICENSE)
+ *
+ * This file is part of the NRM Benchmarks project.
+ * For more info, see https://github.com/anlsys/nrm-benchmarks
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************/
+
+#include "config.h"
+
+#include "nrm-benchmarks.h"
+
+#include <nrm.h>
+#include <mpi.h>
+
+static double *a, *b, *c;
+
+int main(int argc, char **argv)
+{
+	/* configuration parameters:
+	 * - array size in number of double elements
+	 * - number of times to run through the benchmark
+	 */
+	size_t array_size;
+	long int times;
+	double scalar = 3.0;
+
+	/* needed for performance measurement */
+	int64_t sumtime = 0, mintime = INT64_MAX, maxtime = 0;
+	nrm_time_t start, end;
+	size_t memory_size;
+	int num_threads;
+	int num_ranks;
+
+	/* retrieve the size of the allocation and the number of time
+	 * to loop through the kernel.
+	 */
+	assert(argc == 3);
+	errno = 0;
+	array_size = strtoull(argv[1], NULL, 0);
+	assert(!errno);
+	errno = 0;
+	times = strtol(argv[2], NULL, 0);
+	assert(!errno);
+
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+
+	/* ensure that OpenMP is giving us the right number of threads */
+#pragma omp parallel
+#pragma omp master
+	num_threads = omp_get_num_threads();
+	int err = 0;
+#pragma omp parallel
+#pragma omp atomic
+	err++;
+	assert(num_threads == err);
+	err = 0;
+
+	/* allocate the arrays and initialize them. Note that we expect the
+	 * first-touch policy of Linux to result in the arrays being properly
+	 * balanced between threads/numa-nodes
+	 */
+	memory_size = array_size * sizeof(double);
+	a = malloc(memory_size);
+	b = malloc(memory_size);
+	c = malloc(memory_size);
+
+#pragma omp parallel for
+	for(size_t i = 0; i < array_size; i++)
+	{
+		a[i] = 1.0;
+		b[i] = 2.0;
+		c[i] = 0.0;
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	/* one run of the benchmark for free, warms up the memory */
+#pragma omp parallel for
+	for(size_t i = 0; i < array_size; i++)
+		c[i] = a[i] + scalar*b[i];
+
+	/* this version of the benchmarks has a barrier each time it goes
+	 * through the entire array.
+	 */
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	for(long int iter = 0; iter < times; iter++)
+	{
+		int64_t time;
+		nrm_time_gettime(&start);
+
+		/* the actual benchmark */
+#pragma omp parallel for
+		for(size_t i = 0; i < array_size; i++)
+        {
+			c[i] = a[i] + scalar*b[i];
+        }
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		nrm_time_gettime(&end);
+		time = nrm_time_diff(&start, &end);
+		sumtime += time;
+		mintime = NRMB_MIN(time, mintime);
+		maxtime = NRMB_MAX(time, maxtime);
+	}
+
+	MPI_Finalize();
+	/* compute stats */
+
+	/* report the configuration and timings */
+	fprintf(stdout, "NRM Benchmarks:      %s\n", argv[0]);
+	fprintf(stdout, "Version:             %s\n", PACKAGE_VERSION);
+	fprintf(stdout, "Description: one progress per iteration, Triad benchmark\n");
+	fprintf(stdout, "Array size:          %zu (elements).\n", array_size);
+	fprintf(stdout, "Memory per array:    %.1f MiB.\n",
+		(double) memory_size /1024.0/1024.0);
+	fprintf(stdout, "Kernel was executed: %ld times.\n", times);
+	fprintf(stdout, "Number of threads:   %d\n", num_threads);
+	fprintf(stdout, "Number of ranks:   %d\n", num_ranks);
+	fprintf(stdout, "Time (s): avg:       %11.6f min:  %11.6f max: %11.6f\n",
+		1.0E-09 * sumtime/times, 1.0E-09 * mintime, 1.0E-09 * maxtime);
+	fprintf(stdout, "Perf (MiB/s): avg:   %12.6f best: %12.6f\n",
+		(3.0E-06 * memory_size)/ (1.0E-09 * sumtime/times),
+		(3.0E-06 * memory_size)/ (1.0E-09 * mintime));
+
+#ifdef ENABLE_POST_VALIDATION
+	/* validate the benchmark: minimum about of bits should be different. */
+	err = 0;
+	for(size_t i = 0; i < array_size && err == 0; i++)
+		err = err || !nrmb_check_double(7.0, c[i], 2);
+
+	if(err)
+		fprintf(stdout, "VALIDATION FAILED!!!!\n");
+	else
+		fprintf(stdout, "VALIDATION PASSED!!!!\n");
+	return err;
+#else
+	fprintf(stdout, "VALIDATION disabled\n");
+	return 0;
+#endif
+}
